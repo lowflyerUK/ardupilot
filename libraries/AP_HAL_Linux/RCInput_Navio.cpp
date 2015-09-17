@@ -272,8 +272,18 @@ void LinuxRCInput_Navio::stop_dma()
 /* We need to be sure that the DMA is stopped upon termination */
 void LinuxRCInput_Navio::termination_handler(int signum)
 {
-    stop_dma();
-    hal.scheduler->panic("Interrupted");
+    char buf[1024];
+    switch(signum) {
+       case 17:
+          // ignore signal 17 - SIGCHLD sent by a child process when its status changes
+          break;
+       default:
+          // tell us which signal killed us
+          snprintf(buf, sizeof(buf), "Interrupted_in_RCInput_Navio by '%u'", signum);
+          stop_dma();
+          hal.scheduler->panic(buf);
+          break;
+       }
 }
 
 
