@@ -1,0 +1,40 @@
+#!/bin/sh -e
+#
+# put this in /etc/rc.local
+# make it owned by root - run "sudo chown root.root /etc/rc.local"
+# make it executable and writable only by root - run "sudo chmod 744 /etc/rc.local"
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+
+## modify and uncomment the next line to autostart ArduCopter - see http://docs.emlid.com/Navio-APM/installation-and-running/#autostarting-apm-on-boot
+#ArduCopter -A udp:192.168.1.2:14550 -C /dev/ttyAMA0 > /home/pi/startup_log &
+
+## if it doesn't already exist, Set up GPIO 17 and set to output
+if [ ! -f /sys/class/gpio/gpio17/value ]
+then
+
+  echo "17" > /sys/class/gpio/export
+  echo "out" > /sys/class/gpio/gpio17/direction
+  ## uncomment the next 2 lines to set permissions for group "gpio" and add user "pi" with  "sudo usermod -a -G gpio pi"
+  #chown root.gpio /sys/class/gpio/gpio17/value
+  #chmod g+w /sys/class/gpio/gpio17/value
+  echo "0" > /sys/class/gpio/gpio17/value
+
+fi
+
+## if it doesn't already exist, Set up GPIO 18 and set to output
+if [ ! -f /sys/class/gpio/gpio18/value ]
+then
+
+  echo "18" > /sys/class/gpio/export
+  echo "out" > /sys/class/gpio/gpio18/direction
+  ## uncomment the next 2 lines to set permissions for group "gpio"
+  #chown root.gpio /sys/class/gpio/gpio18/value
+  #chmod g+w /sys/class/gpio/gpio18/value
+  echo "0" > /sys/class/gpio/gpio18/value
+
+fi
+
+exit 0
