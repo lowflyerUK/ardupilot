@@ -13,6 +13,11 @@ void Copter::userhook_init()
     // this will be called once at start-up
     was_batt_low = false;
     was_armed = false;
+    //testing HAL version of gpio
+    hal.gpio->pinMode(17, HAL_GPIO_OUTPUT);
+    hal.gpio->pinMode(18, HAL_GPIO_OUTPUT);
+    hal.gpio->write(17, LOW);
+    hal.gpio->write(18, LOW);
 }
 #endif
 
@@ -47,26 +52,30 @@ void Copter::userhook_SlowLoop()
 
      // latches gpio17 whenever battery voltage is low
      if ( battery.voltage() < g.fs_batt_voltage && !was_batt_low ) {
-        system("echo '1' > /sys/class/gpio/gpio17/value");
+       // system("echo '1' > /sys/class/gpio/gpio17/value");
+        hal.gpio->write(17, HIGH);
         was_batt_low = true;
      }
 
    // on change from not armed to armed
    if ( motors.armed() && !was_armed) {
       // switch on gpio18
-      system("echo '1' > /sys/class/gpio/gpio18/value");
+     // system("echo '1' > /sys/class/gpio/gpio18/value");
+      hal.gpio->write(18, HIGH);
       was_armed = true;
       // start script as use 'pi'
       system("start-stop-daemon --start -b --exec /home/pi/run_while_armed.sh --chuid pi");
       // reset battery low indication on gpio17
-      system("echo '0' > /sys/class/gpio/gpio17/value");
+     // system("echo '0' > /sys/class/gpio/gpio17/value");
+      hal.gpio->write(17, LOW);
       was_batt_low = false;
    }
 
    // on change from armed to not armed
    if ( !motors.armed() && was_armed) {
       // switch off gpio18
-      system("echo '0' > /sys/class/gpio/gpio18/value");
+      //system("echo '0' > /sys/class/gpio/gpio18/value");
+      hal.gpio->write(18, LOW);
       // kill script and all child processes
       system("pkill -P $(pidof -x /home/pi/run_while_armed.sh)");
       was_armed = false;

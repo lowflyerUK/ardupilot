@@ -499,6 +499,36 @@ void LinuxRCInput_Navio::_timer_tick()
         //Reading required bit
         curr_signal = *((uint8_t*) circle_buffer->get_page(circle_buffer->_virt_pages, curr_pointer)) & 0x10 ? 1 : 0;
         //If the signal changed
+#ifdef CONFIG_NAVIO_SPECTRUM_7 // for PWM to PPM convertor using Spectrum DX7 and AR7000
+        if (curr_signal != last_signal) {
+            delta_time = curr_tick - prev_tick;
+            prev_tick = curr_tick;
+            width_s0 = (uint16_t) 0;
+            switch (state) {
+            case RCIN_NAVIO_INITIAL_STATE:
+                state = RCIN_NAVIO_ZERO_STATE;
+                break;
+            case RCIN_NAVIO_ZERO_STATE:
+                if (curr_signal == 0) {
+                    width_s1 = (uint16_t) delta_time;
+                    state = RCIN_NAVIO_ONE_STATE;
+                    _process_rc_pulse(width_s0, width_s1);
+                    break;
+                }
+                else 
+                    break;
+            case RCIN_NAVIO_ONE_STATE:
+                if (curr_signal == 1) {
+                    width_s1 = (uint16_t) delta_time;
+                    state = RCIN_NAVIO_ZERO_STATE;
+                    _process_rc_pulse(width_s0, width_s1);
+                    break;
+                }
+                else 
+                    break;
+            }
+        }
+#else
         if (curr_signal != last_signal) {
             delta_time = curr_tick - prev_tick;
             prev_tick = curr_tick;
@@ -530,6 +560,7 @@ void LinuxRCInput_Navio::_timer_tick()
         if (curr_pointer >= circle_buffer->get_page_count()*PAGE_SIZE) {
             curr_pointer = 0;
         }
+#endif
         curr_tick+=curr_tick_inc;
     }
 }

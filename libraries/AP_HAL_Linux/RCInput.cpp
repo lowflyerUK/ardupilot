@@ -26,6 +26,18 @@ LinuxRCInput::LinuxRCInput() :
     new_rc_input(false)
 {
     ppm_state._channel_counter = -1;
+#ifdef CONFIG_NAVIO_SPECTRUM_7
+    for (uint8_t i = 0; i < LINUX_RC_INPUT_NUM_CHANNELS; i++) {
+       _pwm_map[i] = i;
+    }
+     _pwm_map[0] = 0;
+     _pwm_map[1] = 4;
+     _pwm_map[2] = 6;
+     _pwm_map[3] = 1;
+     _pwm_map[4] = 5;
+     _pwm_map[5] = 2;
+     _pwm_map[6] = 3;
+#endif
 }
 
 void LinuxRCInput::init(void* machtnichts)
@@ -111,7 +123,11 @@ void LinuxRCInput::_process_ppmsum_pulse(uint16_t width_usec)
         // channel counter so next pulse is channel 0
         if (ppm_state._channel_counter >= 5) {
             for (uint8_t i=0; i<ppm_state._channel_counter; i++) {
+#ifdef CONFIG_NAVIO_SPECTRUM_7
+                _pwm_values[_pwm_map[i]] = ppm_state._pulse_capt[i];
+#else
                 _pwm_values[i] = ppm_state._pulse_capt[i];
+#endif
             }
             _num_channels = ppm_state._channel_counter;
             new_rc_input = true;
@@ -142,7 +158,12 @@ void LinuxRCInput::_process_ppmsum_pulse(uint16_t width_usec)
     // mark as unsynchronised, so we wait for a wide pulse
     if (ppm_state._channel_counter >= LINUX_RC_INPUT_NUM_CHANNELS) {
         for (uint8_t i=0; i<ppm_state._channel_counter; i++) {
+#ifdef CONFIG_NAVIO_SPECTRUM_7
+            _pwm_values[_pwm_map[i]] = ppm_state._pulse_capt[i];
+#else
+
             _pwm_values[i] = ppm_state._pulse_capt[i];
+#endif
         }
         _num_channels = ppm_state._channel_counter;
         new_rc_input = true;

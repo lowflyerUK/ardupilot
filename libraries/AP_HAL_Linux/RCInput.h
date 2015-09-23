@@ -4,6 +4,8 @@
 
 #include <AP_HAL_Linux.h>
 
+#define CONFIG_NAVIO_SPECTRUM_7 // for PWM to PPM convertor using Spectrum DX7 and AR7000
+
 #define LINUX_RC_INPUT_NUM_CHANNELS 16
 
 class Linux::LinuxRCInput : public AP_HAL::RCInput {
@@ -29,7 +31,10 @@ public:
  private:
     volatile bool new_rc_input;
 
-    uint16_t _pwm_values[LINUX_RC_INPUT_NUM_CHANNELS];    
+    uint16_t _pwm_values[LINUX_RC_INPUT_NUM_CHANNELS];
+#ifdef CONFIG_NAVIO_SPECTRUM_7
+    uint8_t  _pwm_map[LINUX_RC_INPUT_NUM_CHANNELS];
+#endif
     uint8_t  _num_channels;
 
     void _process_ppmsum_pulse(uint16_t width);
